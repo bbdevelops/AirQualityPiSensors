@@ -1,0 +1,11 @@
+[Unit]
+Description=Run AirQualityPi sensor reader every 15 minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=15min
+Persistent=true
+Unit=airqualitypi-sensors.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,17 @@
+[Unit]
+Description=AirQualityPi Sensor Reader
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/AirQualityPiSensors
+EnvironmentFile=/home/pi/AirQualityPiSensors/.env
+ExecStart=/home/pi/AirQualityPiSensors/.venv/bin/python /home/pi/AirQualityPiSensors/Sensors.py
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

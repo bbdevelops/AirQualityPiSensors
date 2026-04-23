@@ -1,0 +1,21 @@
+[Unit]
+Description=AirQualityPi Streamlit Dashboard
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/AirQualityPiSensors
+EnvironmentFile=/home/pi/AirQualityPiSensors/.env
+ExecStart=/home/pi/AirQualityPiSensors/.venv/bin/streamlit run dashboard.py \
+    --server.port 8501 \
+    --server.address 0.0.0.0 \
+    --server.headless true \
+    --browser.gatherUsageStats false
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
