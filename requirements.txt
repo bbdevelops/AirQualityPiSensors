@@ -1,7 +1,7 @@
 Adafruit-Blinka==8.19.0
 adafruit-circuitpython-bme680==3.5.0
 adafruit-circuitpython-busdevice==5.2.6
-adafruit-circuitpython-typing==1.9.4
+adafruit-circuitpython-typing>=1.9.4
 adafruit-extended-bus==1.0.2
 Adafruit-PlatformDetect==3.46.0
 Adafruit-PureIO==1.1.11
@@ -16,5 +16,5 @@ pandas>=2.0.0
 requests==2.31.0
 RPi.GPIO==0.7.1
 streamlit>=1.35.0
-typing-extensions==4.7.1
+typing-extensions>=4.12.0
 urllib3==2.0.7

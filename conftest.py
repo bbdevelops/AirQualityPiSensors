@@ -15,7 +15,6 @@ from unittest.mock import MagicMock
 _HARDWARE_STUBS = [
     "adafruit_extended_bus",
     "adafruit_bme680",
-    "pms5003",
     "board",
     "busio",
     "RPi",
@@ -23,6 +22,19 @@ _HARDWARE_STUBS = [
 ]
 for _mod in _HARDWARE_STUBS:
     sys.modules[_mod] = MagicMock()
+
+# pms5003 needs a real stub so its exception classes can be raised and caught
+# correctly in both production code and tests.
+class _SerialTimeoutError(RuntimeError):
+    pass
+
+class _ReadTimeoutError(RuntimeError):
+    pass
+
+_pms5003_stub = MagicMock()
+_pms5003_stub.SerialTimeoutError = _SerialTimeoutError
+_pms5003_stub.ReadTimeoutError = _ReadTimeoutError
+sys.modules["pms5003"] = _pms5003_stub
 
 # ── Streamlit stub ─────────────────────────────────────────────────────────
 # Replace st.cache_data with a transparent passthrough so load_data() in

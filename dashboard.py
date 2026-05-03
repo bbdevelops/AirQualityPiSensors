@@ -1,4 +1,5 @@
 import sqlite3
+import time
 from pathlib import Path
 
 import pandas as pd
@@ -26,7 +27,7 @@ def pm25_label(value):
     return "Hazardous", "#7e0023"
 
 
-@st.cache_data(ttl=60)
+@st.cache_data(ttl=10)
 def load_data(limit: int = 2000) -> pd.DataFrame:
     if not DB_PATH.exists():
         return pd.DataFrame()
@@ -58,7 +59,8 @@ def main() -> None:  # noqa: C901
     with st.sidebar:
         st.header("Settings")
         hours = st.slider("Show last N hours", min_value=1, max_value=168, value=24)
-        st.caption("Data auto-refreshes every 60 seconds.")
+        refresh_interval = st.slider("Auto-refresh every (seconds)", min_value=10, max_value=300, value=60, step=5)
+        st.caption(f"Dashboard will refresh every {refresh_interval} seconds.")
 
     df = load_data()
 
@@ -182,10 +184,9 @@ def main() -> None:  # noqa: C901
     )
 
     fig_env.update_layout(
-        yaxis=dict(title="Temperature (°C)", titlefont=dict(color="#e45756")),
+        yaxis=dict(title=dict(text="Temperature (°C)", font=dict(color="#e45756"))),
         yaxis2=dict(
-            title="Humidity (%)",
-            titlefont=dict(color="#4c78a8"),
+            title=dict(text="Humidity (%)", font=dict(color="#4c78a8")),
             overlaying="y",
             side="right",
             range=[0, 100],
@@ -236,6 +237,11 @@ def main() -> None:  # noqa: C901
             .reset_index(drop=True),
             use_container_width=True,
         )
+
+    # ── Auto-refresh ──────────────────────────────────────────────────────────
+    time.sleep(refresh_interval)
+    load_data.clear()
+    st.rerun()
 
 
 if __name__ == "__main__":

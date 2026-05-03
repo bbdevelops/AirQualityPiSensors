@@ -1,6 +1,6 @@
 # Installation Guide
 
-This guide walks through setting up AirQualityPiSensors on a **Raspberry Pi 3 B+** running Raspbian (installed via NOOBS). Every command is shown in full — no Linux experience is assumed.
+This guide walks through setting up AirQualityPiSensors on a **Raspberry Pi 3 B+** running Raspberry Pi OS (installed via Raspberry Pi Imager). Every command is shown in full — no Linux experience is assumed.
 
 ---
 
@@ -24,7 +24,7 @@ This guide walks through setting up AirQualityPiSensors on a **Raspberry Pi 3 B+
 
 | Item | Notes |
 |---|---|
-| Raspberry Pi 3 B+ | With Raspbian installed via NOOBS |
+| Raspberry Pi 3 B+ | With Raspberry Pi OS installed via Raspberry Pi Imager |
 | PMS5003 sensor | Particle matter (PM1.0 / PM2.5 / PM10) |
 | BME680 sensor | Temperature, humidity, pressure, altitude |
 | Internet connection on the Pi | For downloading packages |
@@ -85,8 +85,10 @@ Navigate the menus:
 Open the file in the nano text editor:
 
 ```bash
-sudo nano /boot/config.txt
+sudo nano /boot/firmware/config.txt
 ```
+
+> **Trixie note:** On Raspberry Pi OS Bookworm and later (including Trixie), the boot partition is mounted at `/boot/firmware/`. The old path `/boot/config.txt` no longer exists.
 
 Scroll to the bottom and add these three lines (if they are not already present):
 
@@ -127,6 +129,8 @@ A grid is printed. Look for `76` or `77` in the output. If you see one of those,
 ---
 
 ## 4. Install OS packages
+
+> **Trixie note:** Raspberry Pi OS Trixie requires a password for `sudo` commands. If prompted, enter the password you set during first-boot setup.
 
 These packages are needed to compile Python extensions and run the diagnostic tools above:
 

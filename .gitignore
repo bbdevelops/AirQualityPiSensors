@@ -175,3 +175,5 @@ pyrightconfig.json
 
 # End of https://www.toptal.com/developers/gitignore/api/python
 project.md
+pi_os_upgrade_disruption_info.md
+raspberrypi_update_info.md

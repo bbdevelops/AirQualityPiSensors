@@ -7,10 +7,14 @@ every fixture so tests run without a connected sensor or Pi GPIO.
 
 import pytest
 import requests as req_lib
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, call
 
+import pms5003 as _pms5003_mod
 import Sensors
 from Sensors import SensorData
+
+SerialTimeoutError = _pms5003_mod.SerialTimeoutError
+ReadTimeoutError = _pms5003_mod.ReadTimeoutError
 
 
 # ── Shared fixture ─────────────────────────────────────────────────────────
@@ -93,6 +97,39 @@ class TestReadPms:
     def test_returns_none_on_sensor_exception(self, sensor):
         sensor.pms5003.read.side_effect = RuntimeError("serial timeout")
         assert sensor.readPms() is None
+
+    def test_serial_timeout_triggers_reset_and_retry(self, sensor):
+        mock_reading = MagicMock()
+        mock_reading.pm_ug_per_m3.side_effect = lambda x: {1.0: 5, 2.5: 12, 10: 25}[x]
+        sensor.pms5003.read.side_effect = [SerialTimeoutError("timeout"), mock_reading]
+
+        result = sensor.readPms()
+
+        sensor.pms5003.setup.assert_called_once()
+        assert result == {"PM1_0": 5, "PM2_5": 12, "PM10": 25}
+
+    def test_read_timeout_triggers_reset_and_retry(self, sensor):
+        mock_reading = MagicMock()
+        mock_reading.pm_ug_per_m3.side_effect = lambda x: {1.0: 1, 2.5: 2, 10: 3}[x]
+        sensor.pms5003.read.side_effect = [ReadTimeoutError("timeout"), mock_reading]
+
+        result = sensor.readPms()
+
+        sensor.pms5003.setup.assert_called_once()
+        assert result == {"PM1_0": 1, "PM2_5": 2, "PM10": 3}
+
+    def test_returns_none_when_retry_also_times_out(self, sensor):
+        sensor.pms5003.read.side_effect = SerialTimeoutError("timeout")
+
+        assert sensor.readPms() is None
+        assert sensor.pms5003.setup.call_count == 1
+
+    def test_returns_none_when_setup_raises_on_reset(self, sensor):
+        sensor.pms5003.read.side_effect = SerialTimeoutError("timeout")
+        sensor.pms5003.setup.side_effect = Exception("gpio error")
+
+        assert sensor.readPms() is None
+        assert sensor.pms5003.read.call_count == 1
 
 
 # ── sendPms ────────────────────────────────────────────────────────────────

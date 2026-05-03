@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from adafruit_extended_bus import ExtendedI2C as I2C
 import adafruit_bme680
 
-from pms5003 import PMS5003
+from pms5003 import PMS5003, SerialTimeoutError, ReadTimeoutError
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -164,23 +164,33 @@ class SensorData:
             logging.warning("Skipping PMS5003 read because sensor is not initialized.")
             return None
 
-        try:
-            pms_data = self.pms5003.read()
+        for attempt in range(2):
+            try:
+                pms_data = self.pms5003.read()
 
-            pm1_0 = pms_data.pm_ug_per_m3(1.0)
-            pm2_5 = pms_data.pm_ug_per_m3(2.5)
-            pm10 = pms_data.pm_ug_per_m3(10)
+                pm1_0 = pms_data.pm_ug_per_m3(1.0)
+                pm2_5 = pms_data.pm_ug_per_m3(2.5)
+                pm10 = pms_data.pm_ug_per_m3(10)
 
-            data = {
+                return {
                     "PM1_0": pm1_0,
                     "PM2_5": pm2_5,
                     "PM10": pm10
-                    }
+                }
+            except (SerialTimeoutError, ReadTimeoutError) as e:
+                logging.warning("PMS5003 read timeout (attempt %d): %s", attempt + 1, e)
+                if attempt == 0:
+                    try:
+                        self.pms5003.setup()
+                    except Exception as setup_e:
+                        logging.error("Failed to reset PMS5003: %s", setup_e)
+                        return None
+            except Exception as e:
+                logging.error(f"An error occurred when reading PMS data: {e}")
+                return None
 
-            return data
-        except Exception as e:
-            logging.error(f"An error occurred when reading PMS data: {e}")
-            return None
+        logging.error("PMS5003 read failed after reset attempt.")
+        return None
 
     def sendPms(self, data):
         if not self.api_endpoint:
